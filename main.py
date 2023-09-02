@@ -43,6 +43,8 @@ def resize_image(input_image_path, output_image_path, desired_size):
 class MusicPlayer(MDApp):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self.next_button = None
+        self.current_song_index = 0
         self.elapsed_time = 0
         self.start_time = None
         self.current_time_label = None
@@ -59,6 +61,12 @@ class MusicPlayer(MDApp):
     # def update_progress_bar(self, value):
     #     if self.progress_bar.value < 100:
     #         self.progress_bar.value += 1
+
+    def play_next_song(self, instance):
+        self.current_song_index += 1
+        if self.current_song_index >= len(self.music_files):
+            self.current_song_index = 0  # Loop back to the start
+        self.play_music(instance)
 
     def update_progress_bar(self, value):
         if self.progress_bar.value < 100:
@@ -99,16 +107,42 @@ class MusicPlayer(MDApp):
         self.current_time_label.text = current_time
         self.total_time_label.text = total_time
 
+    # def play_music(self, instance):
+    #     self.elapsed_time = 0
+    #     self.play_button.disabled = True
+    #     self.stop_button.disabled = False
+    #     space_gap = "    "  # Adjust this to the number of spaces you want
+    #     self.playing_song = random.choice(self.music_files)
+    #     self.song_label.text = self.playing_song + space_gap + self.playing_song
+    #     # self.playing_song = random.choice(self.music_files)
+    #     self.sound = SoundLoader.load(self.playing_song)
+    #     # self.song_label.text = self.playing_song + "    "
+    #     self.start_time = time.time()
+    #     self.sound.play()
+    #
+    #     Clock.schedule_interval(self.update_song_label, 0.1)
+    #     Clock.schedule_interval(self.update_progress_bar, 0.1)
+    #     Clock.schedule_interval(self.update_current_time_label, .1)
+
     def play_music(self, instance):
+        if self.sound:
+            self.sound.stop()
+
+        # Unschedule previous events before scheduling new ones
+        Clock.unschedule(self.update_song_label)
+        Clock.unschedule(self.update_progress_bar)
+        Clock.unschedule(self.update_current_time_label)
+
         self.elapsed_time = 0
         self.play_button.disabled = True
         self.stop_button.disabled = False
-        space_gap = "    "  # Adjust this to the number of spaces you want
-        self.playing_song = random.choice(self.music_files)
+        self.next_button.disabled = False
+
+        self.playing_song = self.music_files[self.current_song_index]  # Update this line
+        space_gap = "    "
         self.song_label.text = self.playing_song + space_gap + self.playing_song
-        # self.playing_song = random.choice(self.music_files)
+
         self.sound = SoundLoader.load(self.playing_song)
-        # self.song_label.text = self.playing_song + "    "
         self.start_time = time.time()
         self.sound.play()
 
@@ -120,6 +154,7 @@ class MusicPlayer(MDApp):
         self.sound.stop()
         self.play_button.disabled = False
         self.stop_button.disabled = True
+        self.next_button.disabled = True
         Clock.unschedule(self.update_song_label)
         Clock.unschedule(self.update_progress_bar)
         Clock.unschedule(self.update_current_time_label)
@@ -163,6 +198,12 @@ class MusicPlayer(MDApp):
                                         on_press=self.stop_music
                                         )
         self.root.add_widget(self.stop_button)
+        self.next_button = MDIconButton(pos_hint={"center_x": 0.7, "center_y": 0.15},
+                                        icon="next.png",
+                                        on_press=self.play_next_song,
+                                        disabled=True
+                                        )
+        self.root.add_widget(self.next_button)
         return self.root
 
 
