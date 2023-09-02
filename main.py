@@ -44,6 +44,7 @@ def resize_image(input_image_path, output_image_path, desired_size):
 class MusicPlayer(MDApp):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self.previous_button = None
         self.volume_slider = None
         self.next_button = None
         self.current_song_index = 0
@@ -68,6 +69,12 @@ class MusicPlayer(MDApp):
         self.current_song_index += 1
         if self.current_song_index >= len(self.music_files):
             self.current_song_index = 0  # Loop back to the start
+        self.play_music(instance)
+
+    def play_last_song(self, instance):
+        self.current_song_index -= 1
+        if self.current_song_index < 0:
+            self.current_song_index = len(self.music_files) - 1  # Loop back to the last song
         self.play_music(instance)
 
     def update_progress_bar(self, value):
@@ -139,6 +146,7 @@ class MusicPlayer(MDApp):
         self.play_button.disabled = True
         self.stop_button.disabled = False
         self.next_button.disabled = False
+        self.previous_button.disabled = False
 
         self.playing_song = self.music_files[self.current_song_index]  # Update this line
         space_gap = "    "
@@ -157,6 +165,7 @@ class MusicPlayer(MDApp):
         self.play_button.disabled = False
         self.stop_button.disabled = True
         self.next_button.disabled = True
+        self.previous_button.disabled = True
         Clock.unschedule(self.update_song_label)
         Clock.unschedule(self.update_progress_bar)
         Clock.unschedule(self.update_current_time_label)
@@ -187,23 +196,29 @@ class MusicPlayer(MDApp):
         self.root.add_widget(self.current_time_label)
         self.total_time_label = Label(text="0:00", pos_hint={"center_x": 0.9, "center_y": 0.2})
         self.root.add_widget(self.total_time_label)
-        
+
         self.root.add_widget(self.progress_bar)
 
         # self.play_image = "play.jpeg"
         # resize_image("play.jpeg", self.play_image, (1500, 1500))
-        self.play_button = MDIconButton(pos_hint={"center_x": 0.4, "center_y": 0.15},
+        self.previous_button = MDIconButton(pos_hint={"center_x": 0.4, "center_y": 0.15},
+                                            icon="previous.png",
+                                            on_press=self.play_last_song,
+                                            disabled=True
+                                            )
+        self.root.add_widget(self.previous_button)
+        self.play_button = MDIconButton(pos_hint={"center_x": 0.5, "center_y": 0.15},
                                         icon="play.jpeg",
                                         on_press=self.play_music
                                         )
         self.root.add_widget(self.play_button)
-        self.stop_button = MDIconButton(pos_hint={"center_x": 0.5, "center_y": 0.15},
+        self.stop_button = MDIconButton(pos_hint={"center_x": 0.6, "center_y": 0.15},
                                         icon="stop.jpeg",
                                         disabled=True,
                                         on_press=self.stop_music
                                         )
         self.root.add_widget(self.stop_button)
-        self.next_button = MDIconButton(pos_hint={"center_x": 0.6, "center_y": 0.15},
+        self.next_button = MDIconButton(pos_hint={"center_x": 0.7, "center_y": 0.15},
                                         icon="next.png",
                                         on_press=self.play_next_song,
                                         disabled=True
