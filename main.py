@@ -7,6 +7,7 @@ from kivy.app import App
 from kivy.clock import Clock
 from kivy.uix.image import Image
 from kivy.uix.label import Label
+from kivy.uix.slider import Slider
 from kivymd.uix.relativelayout import MDRelativeLayout
 from kivymd.uix.button import MDIconButton
 from kivymd.app import MDApp
@@ -43,6 +44,7 @@ def resize_image(input_image_path, output_image_path, desired_size):
 class MusicPlayer(MDApp):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self.volume_slider = None
         self.next_button = None
         self.current_song_index = 0
         self.elapsed_time = 0
@@ -162,6 +164,9 @@ class MusicPlayer(MDApp):
         self.total_time_label.text = "00:00"
         self.progress_bar.value = 0
 
+    def volume_changed(self, instance, value):
+        self.sound.volume = self.volume_slider.value
+
     def build(self):
         self.root = MDRelativeLayout(md_bg_color=(0, 0, 0, 1))
         self.title = "Music Player"
@@ -192,18 +197,22 @@ class MusicPlayer(MDApp):
                                         on_press=self.play_music
                                         )
         self.root.add_widget(self.play_button)
-        self.stop_button = MDIconButton(pos_hint={"center_x": 0.6, "center_y": 0.15},
+        self.stop_button = MDIconButton(pos_hint={"center_x": 0.5, "center_y": 0.15},
                                         icon="stop.jpeg",
                                         disabled=True,
                                         on_press=self.stop_music
                                         )
         self.root.add_widget(self.stop_button)
-        self.next_button = MDIconButton(pos_hint={"center_x": 0.7, "center_y": 0.15},
+        self.next_button = MDIconButton(pos_hint={"center_x": 0.6, "center_y": 0.15},
                                         icon="next.png",
                                         on_press=self.play_next_song,
                                         disabled=True
                                         )
         self.root.add_widget(self.next_button)
+        self.volume_slider = Slider(min=0, max=1, value=0.5, pos_hint={"center_x": 0.2, "center_y": 0.15},
+                                    size_hint=(0.35, 0.1))
+        self.volume_slider.bind(value=self.volume_changed)
+        self.root.add_widget(self.volume_slider)
         return self.root
 
 
