@@ -43,6 +43,8 @@ def resize_image(input_image_path, output_image_path, desired_size):
 class MusicPlayer(MDApp):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self.elapsed_time = 0
+        self.start_time = None
         self.current_time_label = None
         self.total_time_label = None
         self.album_image = None
@@ -54,22 +56,51 @@ class MusicPlayer(MDApp):
         self.play_button = None
         self.stop_button = None
 
+    # def update_progress_bar(self, value):
+    #     if self.progress_bar.value < 100:
+    #         self.progress_bar.value += 1
+
     def update_progress_bar(self, value):
         if self.progress_bar.value < 100:
-            self.progress_bar.value += 1
+            elapsed_time = time.time() - self.start_time
+            song_length = self.sound.length
+            percentage = (elapsed_time / song_length) * 100
+            self.progress_bar.value = percentage
 
     def update_song_label(self, dt):
         text = self.song_label.text
         updated_text = text[1:] + text[0]
         self.song_label.text = updated_text
 
+    # def update_current_time_label(self, dt):
+    #     current_time = time.strftime("%M:%S", time.gmtime(self.progress_bar.value))
+    #     total_time = time.strftime("%M:%S", time.gmtime(self.sound.length))
+    #     self.current_time_label.text = current_time
+    #     self.total_time_label.text = total_time
     def update_current_time_label(self, dt):
-        current_time = time.strftime("%M:%S", time.gmtime(self.progress_bar.value))
+        if self.sound.state == 'stop':
+            # Unschedule the time update
+            Clock.unschedule(self.update_current_time_label)
+
+            # You can reset the progress bar or other UI components here if needed
+            self.progress_bar.value = 0
+            self.current_time_label.text = "00:00"
+            self.play_button.disabled = False
+            self.stop_button.disabled = True
+            return
+
+        # Increment the elapsed time
+        self.elapsed_time += dt
+
+        # Formatting the elapsed time and total duration to MM:SS format
+        current_time = time.strftime("%M:%S", time.gmtime(self.elapsed_time))
         total_time = time.strftime("%M:%S", time.gmtime(self.sound.length))
+
         self.current_time_label.text = current_time
         self.total_time_label.text = total_time
 
     def play_music(self, instance):
+        self.elapsed_time = 0
         self.play_button.disabled = True
         self.stop_button.disabled = False
         space_gap = "    "  # Adjust this to the number of spaces you want
@@ -78,10 +109,11 @@ class MusicPlayer(MDApp):
         # self.playing_song = random.choice(self.music_files)
         self.sound = SoundLoader.load(self.playing_song)
         # self.song_label.text = self.playing_song + "    "
+        self.start_time = time.time()
         self.sound.play()
 
         Clock.schedule_interval(self.update_song_label, 0.1)
-        Clock.schedule_interval(self.update_progress_bar, self.sound.length / 60)
+        Clock.schedule_interval(self.update_progress_bar, 0.1)
         Clock.schedule_interval(self.update_current_time_label, .1)
 
     def stop_music(self, instance):
