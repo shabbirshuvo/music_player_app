@@ -27,9 +27,23 @@ def find_files(root_dir, file_format):
 class MusicPlayer(MDApp):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self.sound = None
+        self.playing_song = None
         self.music_files = None
         self.play_button = None
         self.stop_button = None
+
+    def play_music(self, instance):
+        self.play_button.disabled = True
+        self.stop_button.disabled = False
+        self.playing_song = random.choice(self.music_files)
+        self.sound = SoundLoader.load(self.playing_song)
+        self.sound.play()
+
+    def stop_music(self, instance):
+        self.sound.stop()
+        self.play_button.disabled = False
+        self.stop_button.disabled = True
 
     def build(self):
         self.root = MDRelativeLayout(md_bg_color=(0, 0, 0, 1))
@@ -41,10 +55,13 @@ class MusicPlayer(MDApp):
 
         self.play_button = MDIconButton(pos_hint={"center_x": 0.4, "center_y": 0.5},
                                         icon="play.jpeg",
+                                        on_press=self.play_music
                                         )
         self.root.add_widget(self.play_button)
         self.stop_button = MDIconButton(pos_hint={"center_x": 0.6, "center_y": 0.5},
-                                        icon="stop.jpeg"
+                                        icon="stop.jpeg",
+                                        disabled=True,
+                                        on_press=self.stop_music
                                         )
         self.root.add_widget(self.stop_button)
 
